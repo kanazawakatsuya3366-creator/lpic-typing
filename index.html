@@ -175,7 +175,6 @@
 </div>
 
 <script>
-    // --- 問題データ ---
     const questions = [
         { cmd: "ls -la", desc: "隠しファイルを含む詳細表示" },
         { cmd: "ls -ltr", desc: "古い順に表示" },
@@ -194,16 +193,21 @@
     ];
 
     let currentQ, typedIndex, score, timeLeft, gameActive = false;
-    let penguinPos = 10;
     let audioCtx = null;
     
-    // 【重要】時間管理用の変数
+    // --- 徹底管理用の変数 ---
     let questionStartTime = 0; 
-    const FIXED_LIMIT = 10; // 10秒固定
+    const FIXED_LIMIT = 10; // 10秒
+    const START_POS = 10;   // 開始位置(%)
+    const END_POS = 75;     // ペンギンの左端がここに来たら「見た目上」穴に落ちる(%)
 
-    // CSSを動的に修正（JSで制御するためtransition: leftを消去）
+    // CSSの競合を強制排除
     const style = document.createElement('style');
-    style.innerHTML = '#penguin { transition: transform 0.2s !important; }'; // transformだけ残す
+    style.innerHTML = `
+        #penguin { 
+            transition: transform 0.2s ease-out !important; /* 左右移動のtransitionを完全に消す */
+        }
+    `;
     document.head.appendChild(style);
 
     function initAudio() {
@@ -225,21 +229,18 @@
     }
 
     function startGame() {
-        if (gameActive) return; // 二重起動防止
-        
+        if (gameActive) return;
         document.getElementById('start-screen').style.display = 'none';
         gameActive = true;
         score = 0;
         timeLeft = 60;
-        
         nextQuestion();
         requestAnimationFrame(gameLoop);
         
-        const timer = setInterval(() => {
-            if(gameActive) timeLeft--;
-            if(timeLeft <= 0) {
-                clearInterval(timer);
-                endGame();
+        setInterval(() => {
+            if(gameActive) {
+                timeLeft--;
+                if(timeLeft <= 0) endGame();
             }
         }, 1000);
     }
@@ -247,8 +248,7 @@
     function nextQuestion() {
         currentQ = questions[Math.floor(Math.random() * questions.length)];
         typedIndex = 0;
-        penguinPos = 10; 
-        questionStartTime = performance.now(); // 問題開始時間を記録
+        questionStartTime = performance.now(); // 完全にここから10秒カウント開始
         updateDisplay();
     }
 
@@ -263,20 +263,22 @@
         document.getElementById('target-desc').innerText = currentQ.desc;
     }
 
-    // --- 【修正】絶対時間ベースのループ ---
     function gameLoop(currentTime) {
         if (!gameActive) return;
 
-        // 問題開始からの経過時間（秒）
+        // 本当の経過時間を算出
         const elapsed = (currentTime - questionStartTime) / 1000;
-
-        // 進行度を計算（10秒で距離75%を進む）
-        // 位置 = 開始(10%) + (移動距離75% * (経過時間 / 制限時間))
-        penguinPos = 10 + (75 * (elapsed / FIXED_LIMIT));
         
-        document.getElementById('penguin').style.left = penguinPos + "%";
+        // 進捗率（0.0 〜 1.0）
+        const progress = Math.min(elapsed / FIXED_LIMIT, 1);
 
-        // 10秒経過（穴に到達）
+        // 位置を計算：開始点 + (移動距離 * 進捗率)
+        // 距離を 75-10=65 に絞ることで、ペンギンの幅があっても10秒ちょうどで穴に届くように調整
+        const currentPos = START_POS + ( (END_POS - START_POS) * progress );
+        
+        document.getElementById('penguin').style.left = currentPos + "%";
+
+        // 判定：10秒経ったか
         if (elapsed >= FIXED_LIMIT) {
             playSound(150, 'sawtooth', 0.3);
             score = Math.max(0, score - 50);
@@ -291,7 +293,6 @@
             if (e.key === 'Enter') startGame();
             return;
         }
-
         if (e.key.length > 1) return;
 
         if (e.key === currentQ.cmd[typedIndex]) {
@@ -325,6 +326,7 @@
 </script>
 </body>
 </html>
+
 
 
 
