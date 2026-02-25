@@ -167,69 +167,40 @@ const questions = [
         // --- 101: システムアーキテクチャ・ファイル管理 ---
 
         { cmd: "ls -la", desc: "隠しファイルを含む全ファイルの詳細を表示" },
-
         { cmd: "ls -ltr", desc: "更新日時が古い順に表示（実務でログ確認に多用）" },
-
         { cmd: "cp -rp src/ dest/", desc: "権限や属性を保持したままディレクトリを再帰的にコピー" },
-
         { cmd: "rm -rf /tmp/olddata", desc: "ディレクトリを警告なしで強制削除（取扱注意）" },
-
         { cmd: "mkdir -p /a/b/c", desc: "中間ディレクトリも含めて一気に作成" },
-
         { cmd: "ln -s target link", desc: "シンボリックリンク（ショートカット）を作成" },
-
         { cmd: "find /var/log -name '*.log'", desc: "指定ディレクトリからログファイルを検索" },
-
         { cmd: "chown root:root file", desc: "所有者とグループを両方rootに変更" },
-
         { cmd: "chmod 644 file", desc: "所有者に読書権限、その他に読込権限を付与" },
-
         { cmd: "chmod 755 script.sh", desc: "スクリプトに実行権限を付与" },
-
         { cmd: "umask 022", desc: "新規ファイルのデフォルト権限を設定" },
-
 
 
         // --- 101: テキスト処理 ---
 
         { cmd: "cat /etc/passwd", desc: "ファイルの中身を全表示" },
-
         { cmd: "less /var/log/messages", desc: "長いファイルを1画面ずつ表示（閲覧に最適）" },
-
         { cmd: "head -n 10 file", desc: "ファイルの先頭10行を表示" },
-
         { cmd: "tail -f /var/log/syslog", desc: "ログの更新をリアルタイムで監視" },
-
         { cmd: "grep -i 'error' file", desc: "大文字小文字を区別せず検索" },
-
-        { cmd: "grep -v '^#' file", desc: "コメント行（#開始）を除外して表示" },
-
         { cmd: "sed -i 's/old/new/g' file", desc: "ファイル内の文字列を直接置換" },
-
         { cmd: "awk '{print $1}' file", desc: "各行の1番目の項目だけを抽出" },
-
         { cmd: "sort -u file", desc: "重複を排除して並べ替え" },
-
         { cmd: "wc -l file", desc: "ファイルの行数をカウント" },
-
 
 
         // --- 101: プロセス管理・ディスク ---
 
         { cmd: "ps aux", desc: "実行中の全プロセスを詳細表示" },
-
         { cmd: "top", desc: "リソース使用率をリアルタイム表示（Qで終了）" },
-
         { cmd: "kill -9 1234", desc: "プロセスID 1234を強制終了" },
-
         { cmd: "jobs", desc: "バックグラウンドジョブの一覧を表示" },
-
         { cmd: "df -h", desc: "ディスクの空き容量を人間が読みやすい形式で表示" },
-
         { cmd: "du -sh *", desc: "現在のディレクトリ内の容量合計を表示" },
-
         { cmd: "fdisk -l", desc: "ディスクパーティション構成を確認" },
-
         { cmd: "mount", desc: "マウントされているデバイスを表示" },
 
 
@@ -237,23 +208,14 @@ const questions = [
         // --- 102: シェル・スクリプト・ネットワーク ---
 
         { cmd: "echo $PATH", desc: "コマンドの検索パスを表示" },
-
         { cmd: "export VAR=val", desc: "環境変数を設定" },
-
         { cmd: "alias ll='ls -l'", desc: "コマンドの別名を設定" },
-
         { cmd: "ip addr show", desc: "IPアドレスとネットワークインターフェースを表示" },
-
         { cmd: "ip route show", desc: "ルーティングテーブルを表示" },
-
         { cmd: "ping -c 4 8.8.8.8", desc: "4回だけ疎通確認を送る" },
-
         { cmd: "netstat -tulnp", desc: "待機中のポートとプロセスを確認" },
-
         { cmd: "ss -ant", desc: "TCP接続の状態を表示" },
-
         { cmd: "dig google.com", desc: "DNSの正引き情報を確認" },
-
         { cmd: "ssh -p 22 user@host", desc: "ポートを指定してリモート接続" },
 
 
@@ -261,23 +223,14 @@ const questions = [
         // --- 102: システムサービス・管理 ---
 
         { cmd: "systemctl start httpd", desc: "Webサーバーを起動" },
-
         { cmd: "systemctl stop firewalld", desc: "ファイアウォールを停止" },
-
         { cmd: "systemctl enable sshd", desc: "SSHの自動起動を有効化" },
-
         { cmd: "systemctl status crond", desc: "定期実行サービスの稼働状態を確認" },
-
         { cmd: "journalctl -xe", desc: "システムログの末尾からエラー詳細を確認" },
-
         { cmd: "crontab -e", desc: "定期実行タスクの編集" },
-
         { cmd: "useradd -m -s /bin/bash user", desc: "ログインシェルを指定してユーザー追加" },
-
         { cmd: "passwd username", desc: "指定ユーザーのパスワードを変更" },
-
         { cmd: "groupadd team-a", desc: "新しいグループを作成" },
-
         { cmd: "id root", desc: "ユーザーのUID/GIDを確認" },
 
 
@@ -285,11 +238,8 @@ const questions = [
         // --- 102: パッケージ管理 ---
 
         { cmd: "yum install nginx", desc: "RedHat系でパッケージをインストール" },
-
         { cmd: "apt update && apt upgrade", desc: "Debian系で全パッケージを更新" },
-
         { cmd: "rpm -qa", desc: "インストール済みのRPMパッケージを全表示" },
-
         { cmd: "dpkg -l", desc: "インストール済みのDebianパッケージを一覧表示" },
 
         
@@ -297,15 +247,10 @@ const questions = [
         // --- 頻出・重要設定ファイル ---
 
         { cmd: "/etc/hostname", desc: "ホスト名を設定するファイル" },
-
         { cmd: "/etc/hosts", desc: "IPアドレスとホスト名の対応表" },
-
         { cmd: "/etc/resolv.conf", desc: "DNSサーバーの設定ファイル" },
-
         { cmd: "/etc/fstab", desc: "ファイルシステムの自動マウント設定" },
-
         { cmd: "/etc/shadow", desc: "暗号化されたパスワードが保存されるファイル" },
-
         { cmd: "/etc/sudoers", desc: "sudo権限を管理するファイル（visudoで編集）" }
 
     ];
@@ -436,6 +381,7 @@ const questions = [
 </script>
 </body>
 </html>
+
 
 
 
