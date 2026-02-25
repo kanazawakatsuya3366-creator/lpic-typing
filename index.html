@@ -20,74 +20,33 @@
             background-color: var(--sky-blue);
         }
 
-        /* --- 背景・レイアウト --- */
-        #world {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        #sky {
-            flex: 2;
-            position: relative;
-            background: linear-gradient(to bottom, #2980b9, #6dd5fa);
-            overflow: hidden;
-        }
-
-        #typing-area {
-            flex: 3;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-
-        /* --- 【修正】坂道をなだらかにする --- */
+        #world { display: flex; flex-direction: column; height: 100vh; }
+        #sky { flex: 2; position: relative; background: linear-gradient(to bottom, #2980b9, #6dd5fa); overflow: hidden; }
+        #typing-area { flex: 3; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+        
+        /* 坂道をなだらかに設定 */
         #ground {
             flex: 2;
             background: linear-gradient(160deg, #fff 0%, #dff9fb 100%);
             position: relative;
-            /* 前より数値を抑えて、なだらかな斜面に変更 */
             clip-path: polygon(0 40%, 85% 65%, 85% 100%, 0 100%);
         }
 
-        /* --- 雲のアニメーション --- */
-        .cloud {
-            position: absolute;
-            background: #fff;
-            width: 100px; height: 40px;
-            border-radius: 50px;
-            opacity: 0.8;
-            animation: moveCloud linear infinite;
-        }
-        @keyframes moveCloud {
-            from { transform: translateX(110vw); }
-            to { transform: translateX(-20vw); }
-        }
+        .cloud { position: absolute; background: #fff; width: 100px; height: 40px; border-radius: 50px; opacity: 0.8; animation: moveCloud linear infinite; }
+        @keyframes moveCloud { from { transform: translateX(110vw); } to { transform: translateX(-20vw); } }
 
-        /* --- タイピングUI --- */
-        #cmd-display {
-            background: rgba(0, 0, 0, 0.7);
-            padding: 30px;
-            border-radius: 20px;
-            border: 4px solid #fff;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            text-align: center;
-            max-width: 80%;
-        }
-
+        #cmd-display { background: rgba(0, 0, 0, 0.7); padding: 30px; border-radius: 20px; border: 4px solid #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; max-width: 80%; }
         #target-desc { color: #ecf0f1; font-size: 1.2rem; margin-bottom: 10px; }
         #target-text { font-family: 'Consolas', monospace; font-size: 2.5rem; color: #fff; letter-spacing: 2px; }
         .correct { color: var(--term-green); text-shadow: 0 0 10px var(--term-green); }
         .current { border-bottom: 3px solid #fff; }
 
-        /* --- ペンギンと穴 --- */
         #penguin {
             position: absolute;
             left: 10%;
             font-size: 5rem;
             z-index: 20;
+            transform-origin: bottom center; /* ジャンプの起点を足元に */
             transition: transform 0.2s ease-out !important;
         }
 
@@ -101,35 +60,11 @@
             clip-path: polygon(20% 0, 100% 0, 100% 100%, 0% 100%);
         }
 
-        /* --- オーバーレイ --- */
-        .overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.85);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            color: white;
-        }
-
-        button {
-            padding: 20px 60px;
-            font-size: 2rem;
-            background: var(--term-green);
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 5px 0 #009432;
-        }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: white; }
+        button { padding: 20px 60px; font-size: 2rem; background: var(--term-green); border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 0 #009432; }
         button:active { transform: translateY(5px); box-shadow: none; }
-
         .miss-flash { animation: flash 0.1s; }
-        @keyframes flash {
-            from { background-color: var(--error-red); }
-            to { background-color: transparent; }
-        }
+        @keyframes flash { from { background-color: var(--error-red); } to { background-color: transparent; } }
     </style>
 </head>
 <body onclick="initAudio()">
@@ -177,7 +112,7 @@
         { cmd: "cp -rp src/ dest/", desc: "属性保持コピー" },
         { cmd: "rm -rf /tmp/old", desc: "強制ディレクトリ削除" },
         { cmd: "mkdir -p /a/b/c", desc: "階層ディレクトリ作成" },
-        { cmd: "chmod 755 script", desc: "実行権付与" },
+        { cmd: "chmod 755 script", desc: "実行権限付与" },
         { cmd: "chown root:root file", desc: "所有者変更" },
         { cmd: "grep -i 'error' file", desc: "大文字小文字無視検索" },
         { cmd: "systemctl start sshd", desc: "SSH起動" },
@@ -190,19 +125,17 @@
 
     let currentQ, typedIndex, score, timeLeft, gameActive = false;
     let audioCtx = null;
-    
     let questionStartTime = 0; 
     const FIXED_LIMIT = 10; 
-    const START_POS = 10;   
-    const END_POS = 75;     
+    const START_POS_X = 10; // 横の開始%
+    const END_POS_X = 75;   // 横の終了%
 
-    // 坂道の高さを定義（見た目と同期させる）
-    const START_Y_PX = 150; // 開始時の底からの高さ(px)
-    const END_Y_PX = 85;    // 穴に届く時の底からの高さ(px)
+    // --- 【修正】高さを%で管理（地面のclip-pathの数値に合わせる） ---
+    // clip-pathが top 40% から 65% なので、bottomからは 60% から 35%
+    const START_POS_Y = 55; // 開始時の高さ%
+    const END_POS_Y = 32;   // 終了時の高さ%
 
-    function initAudio() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
+    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
 
     function playSound(freq, type, duration) {
         if (!audioCtx) return;
@@ -212,10 +145,8 @@
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
         gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
     }
 
     function refreshUI() {
@@ -228,19 +159,16 @@
         document.getElementById('start-screen').style.display = 'none';
         gameActive = true;
         score = 0;
-        timeLeft = 120; 
-        refreshUI();    
+        timeLeft = 120;
+        refreshUI();
         nextQuestion();
         requestAnimationFrame(gameLoop);
         
-        const mainTimer = setInterval(() => {
+        const timer = setInterval(() => {
             if(gameActive) {
                 timeLeft--;
-                refreshUI(); 
-                if(timeLeft <= 0) {
-                    clearInterval(mainTimer);
-                    endGame();
-                }
+                refreshUI();
+                if(timeLeft <= 0) { clearInterval(timer); endGame(); }
             }
         }, 1000);
     }
@@ -248,7 +176,7 @@
     function nextQuestion() {
         currentQ = questions[Math.floor(Math.random() * questions.length)];
         typedIndex = 0;
-        questionStartTime = performance.now(); 
+        questionStartTime = performance.now();
         updateDisplay();
     }
 
@@ -269,49 +197,37 @@
         const elapsed = (currentTime - questionStartTime) / 1000;
         const progress = Math.min(elapsed / FIXED_LIMIT, 1);
 
-        // 横位置の計算
-        const currentPos = START_POS + ((END_POS - START_POS) * progress);
-        document.getElementById('penguin').style.left = currentPos + "%";
+        // --- 横位置の反映 ---
+        const currentPosX = START_POS_X + ((END_POS_X - START_POS_X) * progress);
+        document.getElementById('penguin').style.left = currentPosX + "%";
 
-        // 【修正】坂道の角度に合わせて高さを計算 (START_Y_PXからEND_Y_PXへなだらかに移動)
-        const currentBottom = START_Y_PX - (progress * (START_Y_PX - END_Y_PX));
-        document.getElementById('penguin').style.bottom = currentBottom + "px";
+        // --- 【修正】縦位置を%で反映（これで消えない！） ---
+        const currentPosY = START_POS_Y - (progress * (START_POS_Y - END_POS_Y));
+        document.getElementById('penguin').style.bottom = currentPosY + "%";
 
         if (elapsed >= FIXED_LIMIT) {
             playSound(150, 'sawtooth', 0.3);
             score = Math.max(0, score - 50);
-            refreshUI(); 
+            refreshUI();
             nextQuestion(); 
         }
-
         requestAnimationFrame(gameLoop);
     }
 
     window.addEventListener('keydown', (e) => {
-        if (!gameActive) {
-            if (e.key === 'Enter') startGame();
-            return;
-        }
+        if (!gameActive) { if (e.key === 'Enter') startGame(); return; }
         if (e.key.length > 1) return;
-
         if (e.key === currentQ.cmd[typedIndex]) {
             typedIndex++;
             playSound(600, 'sine', 0.05);
             if (typedIndex >= currentQ.cmd.length) {
                 score += 100;
-                refreshUI(); 
+                refreshUI();
                 playSound(1000, 'sine', 0.1);
-                
                 const p = document.getElementById('penguin');
-                // ジャンプ中も接地感を崩さないよう調整
-                p.style.transform = 'translateY(-50px) rotate(360deg)';
-                setTimeout(() => {
-                    p.style.transform = 'translateY(0) rotate(0)';
-                    nextQuestion();
-                }, 200);
-            } else {
-                updateDisplay();
-            }
+                p.style.transform = 'translateY(-30px) rotate(360deg)';
+                setTimeout(() => { p.style.transform = 'translateY(0) rotate(0)'; nextQuestion(); }, 200);
+            } else { updateDisplay(); }
         } else {
             playSound(200, 'square', 0.1);
             document.body.classList.add('miss-flash');
