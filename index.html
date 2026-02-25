@@ -84,7 +84,7 @@
 <body onclick="initAudio()">
 
 <div style="position: absolute; top: 10px; left: 0; width: 100%; display: flex; justify-content: space-around; z-index: 100; color: white; font-family: monospace; font-size: 2rem; pointer-events: none; text-shadow: 2px 2px 4px black;">
-    <div>TIME: <span id="ui-time">120</span></div>
+    <div>TIME: <span id="ui-time">90</span></div>
     <div>SCORE: <span id="ui-score">0</span></div>
 </div>
 
@@ -344,7 +344,7 @@ const questions = [
         document.getElementById('start-screen').style.display = 'none';
         gameActive = true;
         score = 0;
-        timeLeft = 120;
+        timeLeft = 90;
         refreshUI();
         nextQuestion();
         requestAnimationFrame(gameLoop);
@@ -436,6 +436,7 @@ const questions = [
 </script>
 </body>
 </html>
+
 
 
 
