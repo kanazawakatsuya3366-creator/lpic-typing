@@ -10,7 +10,7 @@
             --ice-white: #f0f8ff;
             --term-green: #00ff41;
             --error-red: #ff4757;
-            --ocean-blue: #1e3799;
+            --ocean-blue: #0a3d62; /* より深い海の色に変更 */
         }
 
         body {
@@ -43,11 +43,13 @@
             z-index: 10;
         }
 
+        /* --- 【変更】坂道にする --- */
         #ground {
             flex: 2;
-            background: linear-gradient(to bottom, #fff 0%, var(--ice-white) 100%);
+            background: linear-gradient(160deg, #fff 0%, #dff9fb 100%);
             position: relative;
-            border-top: 5px solid #dff9fb;
+            /* 左が高く、右が低い坂道の形に切り抜く */
+            clip-path: polygon(0 15%, 85% 90%, 85% 100%, 0 100%);
         }
 
         /* --- 雲のアニメーション --- */
@@ -87,26 +89,19 @@
             left: 10%;
             font-size: 5rem;
             z-index: 20;
-            transition: left 0.1s linear, transform 0.2s;
+            /* 下記の!important付きstyleが優先されます */
+            transition: transform 0.2s;
         }
 
+        /* --- 【変更】文字を消し、穴のビジュアルを調整 --- */
         #pit {
             position: absolute;
             right: 0;
             bottom: 0;
             width: 15%;
             height: 100%;
-            background: var(--ocean-blue);
+            background: linear-gradient(to bottom, #000, var(--ocean-blue));
             clip-path: polygon(20% 0, 100% 0, 100% 100%, 0% 100%);
-        }
-
-        #pit-label {
-            position: absolute;
-            right: 20px;
-            bottom: 50px;
-            color: #fff;
-            font-weight: bold;
-            font-size: 1.5rem;
         }
 
         /* --- オーバーレイ --- */
@@ -163,7 +158,6 @@
     <div id="ground">
         <div id="penguin">🐧</div>
         <div id="pit"></div>
-        <div id="pit-label">落とし穴！</div>
     </div>
 </div>
 
@@ -200,17 +194,15 @@
     let currentQ, typedIndex, score, timeLeft, gameActive = false;
     let audioCtx = null;
     
-    // --- 徹底管理用の変数 ---
     let questionStartTime = 0; 
-    const FIXED_LIMIT = 10; // 10秒
-    const START_POS = 10;   // 開始位置(%)
-    const END_POS = 75;     // ペンギンの左端がここに来たら「見た目上」穴に落ちる(%)
+    const FIXED_LIMIT = 10; 
+    const START_POS = 10;   
+    const END_POS = 75;     
 
-    // CSSの競合を強制排除
     const style = document.createElement('style');
     style.innerHTML = `
         #penguin { 
-            transition: transform 0.2s ease-out !important; /* 左右移動のtransitionを完全に消す */
+            transition: transform 0.2s ease-out !important; 
         }
     `;
     document.head.appendChild(style);
@@ -233,7 +225,6 @@
         osc.stop(audioCtx.currentTime + duration);
     }
 
-    /* 追加：画面表示を更新する関数 */
     function refreshUI() {
         document.getElementById('ui-time').innerText = timeLeft;
         document.getElementById('ui-score').innerText = score;
@@ -244,16 +235,19 @@
         document.getElementById('start-screen').style.display = 'none';
         gameActive = true;
         score = 0;
-        timeLeft = 120; /* 120に変更 */
-        refreshUI();    /* 追加 */
+        timeLeft = 120; 
+        refreshUI();    
         nextQuestion();
         requestAnimationFrame(gameLoop);
         
-        setInterval(() => {
+        const mainTimer = setInterval(() => {
             if(gameActive) {
                 timeLeft--;
-                refreshUI(); /* 追加：タイム更新 */
-                if(timeLeft <= 0) endGame();
+                refreshUI(); 
+                if(timeLeft <= 0) {
+                    clearInterval(mainTimer);
+                    endGame();
+                }
             }
         }, 1000);
     }
@@ -261,7 +255,7 @@
     function nextQuestion() {
         currentQ = questions[Math.floor(Math.random() * questions.length)];
         typedIndex = 0;
-        questionStartTime = performance.now(); // 完全にここから10秒カウント開始
+        questionStartTime = performance.now(); 
         updateDisplay();
     }
 
@@ -279,23 +273,21 @@
     function gameLoop(currentTime) {
         if (!gameActive) return;
 
-        // 本当の経過時間を算出
         const elapsed = (currentTime - questionStartTime) / 1000;
-        
-        // 進捗率（0.0 〜 1.0）
         const progress = Math.min(elapsed / FIXED_LIMIT, 1);
 
-        // 位置を計算：開始点 + (移動距離 * 進捗率)
-        // 距離を 75-10=65 に絞ることで、ペンギンの幅があっても10秒ちょうどで穴に届くように調整
-        const currentPos = START_POS + ( (END_POS - START_POS) * progress );
-        
+        // 横位置
+        const currentPos = START_POS + ((END_POS - START_POS) * progress);
         document.getElementById('penguin').style.left = currentPos + "%";
 
-        // 判定：10秒経ったか
+        // 【追加】坂道に合わせて高さを変える (スタート110pxから徐々に25pxへ滑り落ちる)
+        const currentBottom = 110 - (progress * 85);
+        document.getElementById('penguin').style.bottom = currentBottom + "px";
+
         if (elapsed >= FIXED_LIMIT) {
             playSound(150, 'sawtooth', 0.3);
             score = Math.max(0, score - 50);
-            refreshUI(); /* 追加：スコア更新 */
+            refreshUI(); 
             nextQuestion(); 
         }
 
@@ -314,7 +306,7 @@
             playSound(600, 'sine', 0.05);
             if (typedIndex >= currentQ.cmd.length) {
                 score += 100;
-                refreshUI(); /* 追加：スコア更新 */
+                refreshUI(); 
                 playSound(1000, 'sine', 0.1);
                 
                 const p = document.getElementById('penguin');
@@ -341,4 +333,3 @@
 </script>
 </body>
 </html>
-
