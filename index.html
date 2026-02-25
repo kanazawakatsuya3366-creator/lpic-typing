@@ -240,7 +240,7 @@
 
         // --- 【今回の肝】速度の動的計算 ---
         // 10%から85%まで（距離75%）を、1秒間に2文字のペースで進む設定
-        const targetCPS = 2; // 1秒あたりのキー数（2キー/秒）
+        const targetCPS = 0.5; // 1秒あたりのキー数（0.5キー/秒）
         const timeLimit = currentQ.cmd.length / targetCPS; // 猶予秒数
         // 1フレーム(1/60秒)あたりの移動量を算出
         currentSpeed = (75 / timeLimit) / 60;
@@ -316,6 +316,7 @@
 </script>
 </body>
 </html>
+
 
 
 
