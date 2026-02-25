@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LPIC Penguin Dash</title>
+    <title>LPIC Penguin Race</title>
     <style>
         :root {
             --bg-dark: #0d1117;
@@ -15,103 +15,137 @@
         body {
             background-color: var(--bg-dark);
             color: var(--text-white);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Courier New', monospace;
             margin: 0;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
+            height: 100vh;
         }
 
-        /* ゲーム画面のコンテナ */
-        #game-stage {
-            position: relative;
-            width: 100vw;
-            height: 400px;
-            background: linear-gradient(to bottom, #001f3f 0%, #0074d9 70%, var(--ice-blue) 70%, #ffffff 100%);
-            border-bottom: 5px solid #ddd;
-            overflow: hidden;
-            margin-top: 20px;
-        }
-
-        /* ステータス表示 */
+        /* ヘッダー情報 */
         #hud {
             width: 90%;
-            max-width: 800px;
             display: flex;
             justify-content: space-between;
-            padding: 15px;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        /* 流れる文字のスタイル */
-        .word-box {
-            position: absolute;
-            white-space: nowrap;
-            padding: 10px 20px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 20px;
-            color: var(--text-white);
-            font-family: 'Courier New', monospace;
+            padding: 20px;
             font-size: 1.5rem;
-            transition: transform 0.1s linear;
         }
 
-        .word-box .current { color: var(--term-green); text-decoration: underline; }
-        .word-box .desc { font-size: 0.8rem; display: block; color: #aaa; }
+        /* メイン表示エリア（中央固定） */
+        #display-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            text-align: center;
+        }
 
-        /* ペンギンの簡易表示（画像がない場合用） */
-        .penguin-icon {
+        #target-desc {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+
+        #target-text {
+            font-size: 3.5rem;
+            letter-spacing: 0.1em;
+            background: rgba(255,255,255,0.05);
+            padding: 20px 40px;
+            border-radius: 15px;
+        }
+
+        .correct { color: var(--term-green); }
+        .next { border-bottom: 3px solid var(--term-green); }
+
+        /* ペンギンの走行エリア（下部） */
+        #track-container {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(to bottom, #0074d9, var(--ice-blue));
+            position: relative;
+            border-top: 4px solid #fff;
+        }
+
+        #penguin {
             position: absolute;
-            bottom: 25%;
-            left: 50px;
-            font-size: 3rem;
+            bottom: 20px;
+            left: 0%; /* ここがタイピングで増える */
+            font-size: 4rem;
+            transition: left 0.2s ease-out;
             z-index: 10;
+        }
+
+        #goal-flag {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            font-size: 3rem;
         }
 
         /* 結果画面 */
         #result-screen {
             display: none;
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
-            padding: 40px;
-            border: 2px solid var(--term-green);
-            text-align: center;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             z-index: 100;
         }
 
-        #start-btn {
-            padding: 15px 30px;
+        #start-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 101;
+        }
+
+        button {
+            padding: 15px 40px;
             font-size: 1.5rem;
             background: var(--term-green);
-            color: black;
             border: none;
             cursor: pointer;
-            margin-top: 100px;
+            border-radius: 30px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
+
+<div id="start-screen">
+    <h1 style="font-size: 3rem; color: var(--term-green);">LPIC PENGUIN RACE</h1>
+    <p>コマンドを正しく打ってペンギンをゴールへ導け！</p>
+    <button onclick="startGame()">レース開始 (Enter)</button>
+</div>
 
 <div id="hud">
     <div>Time: <span id="timer">60</span>s</div>
     <div>Score: <span id="score">0</span></div>
 </div>
 
-<div id="game-stage">
-    <div class="penguin-icon" id="player">🐧</div>
-    <button id="start-btn">ゲーム開始 (Enter)</button>
+<div id="display-area">
+    <div id="target-desc">コマンドの説明がここに出ます</div>
+    <div id="target-text">PRESS START</div>
+</div>
+
+<div id="track-container">
+    <div id="penguin">🐧</div>
+    <div id="goal-flag">🏁</div>
 </div>
 
 <div id="result-screen">
-    <h2>結果発表</h2>
-    <p id="final-score"></p>
-    <p id="rank-msg"></p>
-    <button onclick="location.reload()">もう一度挑戦</button>
+    <h2 style="font-size: 3rem;">FINISH!</h2>
+    <p id="final-stats" style="font-size: 1.5rem;"></p>
+    <button onclick="location.reload()">再挑戦</button>
 </div>
 
 <script>
@@ -190,79 +224,55 @@ const questions = [
         { cmd: "/etc/sudoers", desc: "sudo権限を管理するファイル（visudoで編集）" }
     ];
 
+    let currentQ = {};
+    let typedIndex = 0;
     let score = 0;
     let timeLeft = 60;
     let gameActive = false;
-    let activeWords = [];
-    let gameSpeed = 2; // 文字の流れる速度
-    const stage = document.getElementById('game-stage');
+    let totalCharsTyped = 0;
 
-    class Word {
-        constructor() {
-            const q = questions[Math.floor(Math.random() * questions.length)];
-            this.fullText = q.cmd;
-            this.desc = q.desc;
-            this.typedIndex = 0;
-            this.x = window.innerWidth;
-            this.y = Math.random() * 200 + 50; // 出現する高さ
-
-            this.element = document.createElement('div');
-            this.element.className = 'word-box';
-            this.updateElement();
-            stage.appendChild(this.element);
-        }
-
-        updateElement() {
-            const typed = `<span class="current">${this.fullText.substring(0, this.typedIndex)}</span>`;
-            const untyped = this.fullText.substring(this.typedIndex);
-            this.element.innerHTML = `${typed}${untyped}<span class="desc">${this.desc}</span>`;
-            this.element.style.left = this.x + 'px';
-            this.element.style.top = this.y + 'px';
-        }
-
-        move() {
-            this.x -= gameSpeed;
-            this.element.style.left = this.x + 'px';
-        }
-    }
+    const targetTextElem = document.getElementById('target-text');
+    const targetDescElem = document.getElementById('target-desc');
+    const penguinElem = document.getElementById('penguin');
+    const scoreElem = document.getElementById('score');
+    const timerElem = document.getElementById('timer');
 
     function startGame() {
+        document.getElementById('start-screen').style.display = 'none';
         gameActive = true;
-        document.getElementById('start-btn').style.display = 'none';
+        nextQuestion();
         
-        // 1.5秒ごとに新しいワードを生成
-        const spawner = setInterval(() => {
-            if (!gameActive) clearInterval(spawner);
-            activeWords.push(new Word());
-        }, 1500);
-
-        // タイマー
-        const timerInt = setInterval(() => {
+        const timerId = setInterval(() => {
             timeLeft--;
-            document.getElementById('timer').innerText = timeLeft;
+            timerElem.innerText = timeLeft;
             if (timeLeft <= 0) {
-                gameActive = false;
-                clearInterval(timerInt);
-                showResult();
+                clearInterval(timerId);
+                endGame();
             }
         }, 1000);
-
-        gameLoop();
     }
 
-    function gameLoop() {
-        if (!gameActive) return;
+    function nextQuestion() {
+        currentQ = questions[Math.floor(Math.random() * questions.length)];
+        typedIndex = 0;
+        updateDisplay();
+        // 問題が変わるたびにペンギンの位置を少し戻すか、そのまま進めるかはお好み
+        // 今回は「全体の進捗」として、ペンギンが右端にいくまでを1つの目標にします
+    }
 
-        activeWords.forEach((word, index) => {
-            word.move();
-            // 画面外に出たらミス
-            if (word.x < -300) {
-                word.element.remove();
-                activeWords.splice(index, 1);
+    function updateDisplay() {
+        let html = "";
+        for (let i = 0; i < currentQ.cmd.length; i++) {
+            if (i < typedIndex) {
+                html += `<span class="correct">${currentQ.cmd[i]}</span>`;
+            } else if (i === typedIndex) {
+                html += `<span class="next">${currentQ.cmd[i]}</span>`;
+            } else {
+                html += `<span>${currentQ.cmd[i]}</span>`;
             }
-        });
-
-        requestAnimationFrame(gameLoop);
+        }
+        targetTextElem.innerHTML = html;
+        targetDescElem.innerText = currentQ.desc;
     }
 
     window.addEventListener('keydown', (e) => {
@@ -271,40 +281,31 @@ const questions = [
             return;
         }
 
-        // 現在画面にある中で一番左にあるワードをターゲットにする
-        if (activeWords.length === 0) return;
-        
-        // 最も左にあるワードを取得
-        let targetWord = activeWords[0];
-
-        if (e.key === targetWord.fullText[targetWord.typedIndex]) {
-            targetWord.typedIndex++;
+        // キー判定
+        if (e.key === currentQ.cmd[typedIndex]) {
+            typedIndex++;
+            totalCharsTyped++;
             score += 10;
-            document.getElementById('score').innerText = score;
             
-            if (targetWord.typedIndex >= targetWord.fullText.length) {
-                targetWord.element.style.background = "var(--term-green)";
-                setTimeout(() => {
-                    targetWord.element.remove();
-                }, 100);
-                activeWords.shift();
-                score += 100; // 打ち切りボーナス
+            // ペンギンを右に動かす (最大90%まで)
+            let progress = (totalCharsTyped % 50) * 2; // 50文字打つごとに端まで行く設定
+            penguinElem.style.left = progress + "%";
+            
+            if (typedIndex >= currentQ.cmd.length) {
+                score += 50; // ボーナス
+                nextQuestion();
             } else {
-                targetWord.updateElement();
+                updateDisplay();
             }
+            scoreElem.innerText = score;
         }
     });
 
-    function showResult() {
-        document.getElementById('result-screen').style.display = 'block';
-        document.getElementById('final-score').innerText = `スコア: ${score}点`;
-        let rank = "LPIC 練習生級";
-        if (score > 1000) rank = "root権限級";
-        else if (score > 500) rank = "エンジニア級";
-        document.getElementById('rank-msg').innerText = `称号: ${rank}`;
+    function endGame() {
+        gameActive = false;
+        document.getElementById('result-screen').style.display = 'flex';
+        document.getElementById('final-stats').innerText = `最終スコア: ${score}点 / 打鍵数: ${totalCharsTyped}`;
     }
-
 </script>
 </body>
 </html>
-
