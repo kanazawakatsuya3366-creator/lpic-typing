@@ -169,7 +169,7 @@
 
 <div id="start-screen" class="overlay">
     <h1 style="font-size: 4rem;">🐧 ペンギン救出作戦</h1>
-    <p style="font-size: 1.5rem; margin-bottom: 30px;">穴に落ちる前にコマンドを打ち込め！</p>
+    <p style="font-size: 1.5rem; margin-bottom: 30px;">LPICタイピング～穴に落ちる前にコマンドを打ち込め！～</p>
     <button onclick="startGame()">レスキュー開始 (Enter)</button>
 </div>
 
@@ -336,8 +336,9 @@
     function endGame() {
         gameActive = false;
         document.getElementById('result-screen').style.display = 'flex';
-        document.getElementById('stats').innerHTML = `スコア: ${score}点<br>LPICレベル: ${score > 1500 ? 'root級' : '一般ユーザー級'}`;
+        document.getElementById('stats').innerHTML = `スコア: ${score}点<br>LPICレベル: ${score > 1500 ? '実務レベル' : '一般レベル'}`;
     }
 </script>
 </body>
 </html>
+
